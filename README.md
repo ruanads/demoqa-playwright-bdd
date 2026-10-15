@@ -2,7 +2,7 @@
 
 Automação do desafio de QA (API + Frontend) do site [demoqa.com](https://demoqa.com) usando **Playwright + TypeScript** com **BDD (Gherkin/Cucumber)** via [playwright-bdd](https://github.com/vitalets/playwright-bdd).
 
-> O desafio sugere Selenium/Cypress. Optei por Playwright + TypeScript por ser minha stack principal. O playwright-bdd permite escrever os cenários em Gherkin (Cucumber) e executá-los no runner nativo do Playwright, mantendo paralelismo, traces, vídeos e relatórios.
+> **Por que Playwright + TypeScript?** O desafio sugere Java, Ruby, Python ou JavaScript com Selenium ou Cypress. Com prazo de 2 dias, optei pela stack que domino: em uma ferramenta fora do meu dia a dia eu até conseguiria entregar algo parecido, mas não conseguiria explicar e defender cada decisão com a mesma profundidade. Os conceitos avaliados (Page Object, BDD com Gherkin, organização do código) são os mesmos em qualquer ferramenta. O playwright-bdd permite escrever os cenários em Gherkin e executá-los no runner nativo do Playwright, com paralelismo, traces, vídeos e relatório no formato Cucumber.
 
 ## Stack
 
@@ -66,21 +66,24 @@ Pré-requisito: Node.js 22+ (versão fixada em `.nvmrc`).
 npm install
 npx playwright install chromium
 
-npm test              # tudo (API + UI)
-npm run test:api      # apenas a Parte 1
-npm run test:ui       # apenas a Parte 2
-npm run test:headed   # UI com o browser visível
-npm run report        # abre o relatório HTML do Playwright
-npm run typecheck     # checagem de tipos do TypeScript
-npm run lint          # ESLint (inclui regras do Playwright, como await esquecido)
+npm test                 # suíte do desafio (API + UI)
+npm run test:api         # apenas a Parte 1
+npm run test:ui          # apenas a Parte 2
+npm run test:headed      # UI com o browser visível
+npm run test:bugs        # cenários dos bugs conhecidos do DemoQA (ver abaixo)
+npm run report           # abre o relatório HTML do Playwright
+npm run report:cucumber  # abre o relatório em Gherkin (formato Cucumber)
+npm run typecheck        # checagem de tipos do TypeScript
+npm run lint             # ESLint (inclui regras do Playwright, como await esquecido)
 ```
 
 Filtrar por tag: `npx bddgen && npx playwright test --grep @webtables`.
 
 Tudo que a execução gera fica em `relatorios/`:
-- `relatorios/playwright/` — relatório HTML do Playwright
-- `relatorios/cucumber/index.html` — relatório no formato Cucumber
-- `relatorios/resultados/` — traces, screenshots e vídeos das falhas
+- `relatorios/cucumber/index.html` — relatório em Gherkin: funcionalidades, cenários e cada passo (`Dado/Quando/Então`) com status e tempo
+- `relatorios/playwright/` — relatório HTML do Playwright, também com os passos em Gherkin, além de trace, screenshot e vídeo das falhas
+- `relatorios/resultados/` — arquivos brutos de trace, screenshots e vídeos
+- `relatorios/bugs/` — os mesmos relatórios, para a execução de `npm run test:bugs`
 
 ## Cobertura
 
@@ -103,7 +106,9 @@ Todos os cenários navegam a partir da página inicial (card → submenu), como 
 
 ## Bugs encontrados no DemoQA
 
-Os bugs abaixo estão documentados como cenários `@bug @fail`. A tag especial `@fail` do playwright-bdd marca uma falha esperada: o teste fica verde enquanto o bug existir e passa a falhar quando o site for corrigido.
+Os bugs abaixo estão documentados como cenários `@bug @fail`, que validam o comportamento **correto**. Eles ficam fora da suíte principal e rodam com `npm run test:bugs` (no CI, em uma etapa separada), com relatórios próprios em `relatorios/bugs/`. Assim os relatórios da suíte do desafio mostram só o que foi pedido.
+
+A tag especial `@fail` do playwright-bdd marca uma falha esperada: a execução fica verde enquanto o bug existir e passa a falhar quando o site for corrigido, avisando que o cenário pode voltar para a suíte principal. O relatório Cucumber de bugs mostra esses cenários em vermelho, que é o esperado: ele lista os bugs ainda presentes.
 
 1. **Practice Form — botão "Close" não fecha o popup.** O clique chega ao botão, mas o modal continua aberto. No fluxo principal o popup é fechado com `ESC`.
 2. **Web Tables — deletar um registro remove todos os registros adicionados.** Por isso o passo "deletar todos" só remove os registros que ainda estiverem na tabela.

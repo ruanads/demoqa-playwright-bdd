@@ -3,6 +3,12 @@ import { cucumberReporter, defineBddProject } from 'playwright-bdd';
 import { ambiente } from './src/config/ambiente';
 
 const fixtures = 'src/fixtures/index.ts';
+const navegador = { ...devices['Desktop Chrome'], viewport: { width: 1600, height: 900 } };
+
+// Os cenários de bug conhecido (@bug) rodam separados da suíte principal (npm run test:bugs),
+// com relatórios próprios, para não aparecerem como falha nos relatórios da suíte.
+const execucaoDeBugs = process.argv.includes('--project=bugs');
+const pastaRelatorios = execucaoDeBugs ? 'relatorios/bugs' : 'relatorios';
 
 export default defineConfig({
   timeout: 60_000,
@@ -13,11 +19,11 @@ export default defineConfig({
   // No CI, um teste que só passa na segunda tentativa é instável: o retry mostra
   // isso no relatório, mas a execução falha para a instabilidade não passar despercebida.
   failOnFlakyTests: !!process.env.CI,
-  outputDir: 'relatorios/resultados',
+  outputDir: `${pastaRelatorios}/resultados`,
   reporter: [
     ['list'],
-    ['html', { outputFolder: 'relatorios/playwright', open: 'never' }],
-    cucumberReporter('html', { outputFile: 'relatorios/cucumber/index.html' }),
+    ['html', { outputFolder: `${pastaRelatorios}/playwright`, open: 'never' }],
+    cucumberReporter('html', { outputFile: `${pastaRelatorios}/cucumber/index.html` }),
   ],
   use: {
     baseURL: ambiente.urlBase,
@@ -39,7 +45,17 @@ export default defineConfig({
         features: 'testes/ui/**/*.feature',
         steps: ['testes/ui/**/*.steps.ts', fixtures],
       }),
-      use: { ...devices['Desktop Chrome'], viewport: { width: 1600, height: 900 } },
+      grepInvert: /@bug/,
+      use: navegador,
+    },
+    {
+      ...defineBddProject({
+        name: 'bugs',
+        features: 'testes/ui/**/*.feature',
+        steps: ['testes/ui/**/*.steps.ts', fixtures],
+      }),
+      grep: /@bug/,
+      use: navegador,
     },
   ],
 });

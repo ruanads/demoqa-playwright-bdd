@@ -3,14 +3,16 @@
   "version": "1.0.0",
   "description": "Desafio QA Automation (DemoQA) com Playwright + TypeScript + BDD",
   "scripts": {
-    "test": "bddgen && playwright test",
+    "test": "bddgen && playwright test --project=api --project=ui",
     "bddgen": "bddgen",
     "test:api": "bddgen && playwright test --project=api",
     "test:ui": "bddgen && playwright test --project=ui",
     "test:headed": "bddgen && playwright test --project=ui --headed",
     "typecheck": "tsc",
     "report": "playwright show-report relatorios/playwright",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:bugs": "bddgen && playwright test --project=bugs",
+    "report:cucumber": "node -e \"require('child_process').exec((process.platform==='win32'?'start \\\"\\\" ':process.platform==='darwin'?'open ':'xdg-open ')+'relatorios/cucumber/index.html')\""
   },
   "type": "commonjs",
   "devDependencies": {
