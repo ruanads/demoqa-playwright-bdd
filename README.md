@@ -2,8 +2,6 @@
 
 Automação do desafio de QA (API + Frontend) do site [demoqa.com](https://demoqa.com) usando **Playwright + TypeScript** com **BDD (Gherkin/Cucumber)** via [playwright-bdd](https://github.com/vitalets/playwright-bdd).
 
-> **Por que Playwright + TypeScript?** O desafio sugere Java, Ruby, Python ou JavaScript com Selenium ou Cypress. Com prazo de 2 dias, optei pela stack que domino: em uma ferramenta fora do meu dia a dia eu até conseguiria entregar algo parecido, mas não conseguiria explicar e defender cada decisão com a mesma profundidade. Os conceitos avaliados (Page Object, BDD com Gherkin, organização do código) são os mesmos em qualquer ferramenta. O playwright-bdd permite escrever os cenários em Gherkin e executá-los no runner nativo do Playwright, com paralelismo, traces, vídeos e relatório no formato Cucumber.
-
 ## Stack
 
 | Item | Uso |
