@@ -1,17 +1,17 @@
 import { expect } from '@playwright/test';
 import { Then, When } from '@fixtures';
 
-When('eu clico no botão New Window', async ({ paginaBrowserWindows, contexto }) => {
-  contexto.definir('novaJanela', await paginaBrowserWindows.abrirNovaJanela());
+When('eu clico no botão New Window', async ({ paginaBrowserWindows, contextoBrowserWindows }) => {
+  contextoBrowserWindows.definir('novaJanela', await paginaBrowserWindows.abrirNovaJanela());
 });
 
-Then('uma nova janela deve ser aberta com a mensagem {string}', async ({ context, contexto }, mensagem: string) => {
+Then('uma nova janela deve ser aberta com a mensagem {string}', async ({ context, contextoBrowserWindows }, mensagem: string) => {
   expect(context.pages()).toHaveLength(2);
-  await expect(contexto.obter('novaJanela').titulo).toHaveText(mensagem);
+  await expect(contextoBrowserWindows.obter('novaJanela').titulo).toHaveText(mensagem);
 });
 
-When('eu fecho a nova janela', async ({ contexto }) => {
-  await contexto.obter('novaJanela').fechar();
+When('eu fecho a nova janela', async ({ contextoBrowserWindows }) => {
+  await contextoBrowserWindows.obter('novaJanela').fechar();
 });
 
 Then('apenas a janela original deve permanecer aberta', async ({ context, page }) => {

@@ -9,11 +9,22 @@ import { PaginaPracticeForm } from '@paginas/forms/practice-form.pagina';
 import { PaginaInicial } from '@paginas/inicial.pagina';
 import { PaginaSortable } from '@paginas/interactions/sortable.pagina';
 import { PaginaProgressBar } from '@paginas/widgets/progress-bar.pagina';
-import { ContextoCenario } from './contexto-cenario';
+import {
+  Contexto,
+  DadosBookStore,
+  DadosBrowserWindows,
+  DadosPracticeForm,
+  DadosProgressBar,
+  DadosWebTables,
+} from './contexto';
 
 type Fixtures = {
   sementeFaker: number;
-  contexto: ContextoCenario;
+  contextoBookStore: Contexto<DadosBookStore>;
+  contextoPracticeForm: Contexto<DadosPracticeForm>;
+  contextoBrowserWindows: Contexto<DadosBrowserWindows>;
+  contextoWebTables: Contexto<DadosWebTables>;
+  contextoProgressBar: Contexto<DadosProgressBar>;
   clienteBookStore: ClienteBookStore;
   paginaInicial: PaginaInicial;
   menuLateral: MenuLateral;
@@ -49,7 +60,11 @@ export const test = base.extend<Fixtures>({
     });
     await use(context);
   },
-  contexto: async ({}, use) => use(new ContextoCenario()),
+  contextoBookStore: async ({}, use) => use(new Contexto()),
+  contextoPracticeForm: async ({}, use) => use(new Contexto()),
+  contextoBrowserWindows: async ({}, use) => use(new Contexto()),
+  contextoWebTables: async ({}, use) => use(new Contexto()),
+  contextoProgressBar: async ({}, use) => use(new Contexto()),
   clienteBookStore: async ({ request }, use) => use(new ClienteBookStore(request)),
   paginaInicial: async ({ page }, use) => use(new PaginaInicial(page)),
   menuLateral: async ({ page }, use) => use(new MenuLateral(page)),

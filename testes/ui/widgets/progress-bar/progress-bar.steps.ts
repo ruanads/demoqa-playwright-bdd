@@ -6,16 +6,16 @@ Before({ tags: '@progressbar' }, async ({ page }) => {
   await page.clock.install();
 });
 
-When('eu inicio a progress bar e paro antes dos {int}%', async ({ paginaProgressBar, contexto }, limite: number) => {
+When('eu inicio a progress bar e paro antes dos {int}%', async ({ paginaProgressBar, contextoProgressBar }, limite: number) => {
   await paginaProgressBar.congelarTempo();
   await paginaProgressBar.iniciar();
   await paginaProgressBar.avancarAte(limite - 1);
   await paginaProgressBar.parar();
-  contexto.definir('valorProgresso', await paginaProgressBar.valor());
+  contextoProgressBar.definir('valorProgresso', await paginaProgressBar.valor());
 });
 
-Then('o valor da progress bar deve ser menor ou igual a {int}%', async ({ paginaProgressBar, contexto }, limite: number) => {
-  const valor = contexto.obter('valorProgresso');
+Then('o valor da progress bar deve ser menor ou igual a {int}%', async ({ paginaProgressBar, contextoProgressBar }, limite: number) => {
+  const valor = contextoProgressBar.obter('valorProgresso');
   expect(valor).toBeGreaterThan(0);
   expect(valor).toBeLessThanOrEqual(limite);
   await expect(paginaProgressBar.barraProgresso).toHaveText(`${valor}%`);
@@ -24,6 +24,10 @@ Then('o valor da progress bar deve ser menor ou igual a {int}%', async ({ pagina
 When('eu inicio a progress bar novamente até chegar aos 100%', async ({ paginaProgressBar }) => {
   await paginaProgressBar.iniciar();
   await paginaProgressBar.avancarAte(100);
+});
+
+Then('a progress bar deve estar em 100%', async ({ paginaProgressBar }) => {
+  await expect(paginaProgressBar.barraProgresso).toHaveAttribute('aria-valuenow', '100');
   await expect(paginaProgressBar.barraProgresso).toHaveText('100%');
 });
 

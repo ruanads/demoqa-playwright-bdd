@@ -39,8 +39,8 @@ src/                                          # Framework de automação
     components/menu-lateral.component.ts
     elements/ forms/ widgets/ ...
   fixtures/
-    index.ts                                  # Entrega Page Objects, cliente da API e contexto aos steps
-    contexto-cenario.ts                       # Estado compartilhado entre os steps de um cenário
+    index.ts                                  # Entrega Page Objects, cliente da API e contextos aos steps
+    contexto.ts                               # Estado compartilhado entre os steps (um contexto por funcionalidade)
   data/
     factories/                                # Geração de massa com faker (usuário, aluno, registro)
     constants/                                # Opções fixas do DemoQA (estados, matérias...)
@@ -60,7 +60,7 @@ O projeto é escrito em português, com três exceções:
 
 ## Como executar
 
-Pré-requisito: Node.js 20+.
+Pré-requisito: Node.js 22+ (versão fixada em `.nvmrc`).
 
 ```bash
 npm install
@@ -71,6 +71,8 @@ npm run test:api      # apenas a Parte 1
 npm run test:ui       # apenas a Parte 2
 npm run test:headed   # UI com o browser visível
 npm run report        # abre o relatório HTML do Playwright
+npm run typecheck     # checagem de tipos do TypeScript
+npm run lint          # ESLint (inclui regras do Playwright, como await esquecido)
 ```
 
 Filtrar por tag: `npx bddgen && npx playwright test --grep @webtables`.
@@ -111,10 +113,12 @@ Os bugs abaixo estão documentados como cenários `@bug @fail`. A tag especial `
 - **Feature e steps lado a lado**, agrupados por assunto, como recomenda a documentação do playwright-bdd. Steps compartilhados ficam em `testes/ui/shared`.
 - **Ambiente configurável**: `BASE_URL=https://outro-ambiente npm test`.
 - **Page Object Model** no formato da documentação do Playwright (o construtor recebe o `page` e cria os locators), entregues aos steps pelas fixtures. Page Objects só executam ações e esperas de sincronização; **todas as validações (`expect`) ficam nos steps**.
-- **Contexto por cenário** (fixture `contexto`): os steps compartilham estado com `contexto.definir()` / `contexto.obter()`, de forma tipada e sem variáveis globais (seguro para execução em paralelo). Se um step tentar ler algo que ainda não foi definido, o erro diz exatamente o quê.
+- **Contexto por funcionalidade** (`contextoWebTables`, `contextoBookStore`...): os steps compartilham estado com `definir()` / `obter()`, cada funcionalidade só enxerga as próprias chaves, de forma tipada e sem variáveis globais (seguro para execução em paralelo). Se um step tentar ler algo que ainda não foi definido, o erro diz exatamente o quê.
 - **Progress Bar determinística**: o cenário usa o relógio falso do Playwright (`page.clock`). O tempo só avança quando o teste manda, então o resultado não depende da velocidade da máquina.
 - **Dados reproduzíveis**: cada teste registra a semente do faker no relatório (anotação `faker-seed`). Para repetir uma falha com os mesmos dados: `FAKER_SEED=<semente> npm test`.
 - **Bloqueio de anúncios**: requisições para fora do domínio do site são abortadas, porque os anúncios deixam o site lento e cobrem elementos.
 - **Web Tables**: as linhas são localizadas pelo e-mail usando a busca da tabela, para não depender da paginação.
+- **Asserções que esperam a tela** (`await expect(locator).toHaveText(...)`) em vez de ler um valor e comparar, para o teste não depender do tempo de renderização. Na Web Tables, a pesquisa só retorna depois que a tabela terminou de filtrar.
+- **CI**: roda typecheck e lint antes dos testes. Teste que só passa na segunda tentativa faz o CI falhar (`failOnFlakyTests`), para instabilidade não passar despercebida.
 - **Datepicker**: a data é selecionada pelo calendário (mês/ano/dia) em vez de digitada.
 - **Selects de Estado/Cidade** localizados pelo container (`#state input`), e não pelos ids gerados pelo react-select, que mudam conforme a ordem dos componentes.

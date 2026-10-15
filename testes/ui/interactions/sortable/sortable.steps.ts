@@ -14,7 +14,8 @@ When('eu embaralho os elementos da lista usando drag and drop', async ({ paginaS
   } while (embaralhada.join() === crescente.join());
 
   await paginaSortable.reordenarPara(embaralhada);
-  expect(await paginaSortable.textosDosItens()).not.toEqual(crescente);
+  // Guarda de pré-condição: garante que a lista ficou mesmo fora de ordem.
+  await expect(paginaSortable.itens).toHaveText(embaralhada);
 });
 
 When('eu coloco os elementos em ordem crescente usando drag and drop', async ({ paginaSortable }) => {
@@ -22,5 +23,5 @@ When('eu coloco os elementos em ordem crescente usando drag and drop', async ({ 
 });
 
 Then('os elementos devem estar em ordem crescente', async ({ paginaSortable }) => {
-  expect(await paginaSortable.textosDosItens()).toEqual(['One', 'Two', 'Three', 'Four', 'Five', 'Six']);
+  await expect(paginaSortable.itens).toHaveText(['One', 'Two', 'Three', 'Four', 'Five', 'Six']);
 });

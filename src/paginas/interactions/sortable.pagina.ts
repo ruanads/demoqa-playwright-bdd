@@ -3,7 +3,7 @@ import { Locator, Page } from '@playwright/test';
 const PALAVRA_PARA_NUMERO: Record<string, number> = { One: 1, Two: 2, Three: 3, Four: 4, Five: 5, Six: 6 };
 
 export class PaginaSortable {
-  private readonly itens: Locator;
+  readonly itens: Locator;
 
   constructor(page: Page) {
     this.itens = page.locator('#demo-tabpane-list .list-group-item');

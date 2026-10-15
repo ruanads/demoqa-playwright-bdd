@@ -3,25 +3,25 @@ import path from 'node:path';
 import { Then, When } from '@fixtures';
 import { gerarAluno } from '@data/factories/aluno.factory';
 
-When('eu preencho todo o formulário com valores aleatórios', async ({ paginaPracticeForm, contexto }) => {
+When('eu preencho todo o formulário com valores aleatórios', async ({ paginaPracticeForm, contextoPracticeForm }) => {
   const aluno = gerarAluno();
   await paginaPracticeForm.preencher(aluno);
-  contexto.definir('aluno', aluno);
+  contextoPracticeForm.definir('aluno', aluno);
 });
 
 When('eu submeto o formulário', async ({ paginaPracticeForm }) => {
   await paginaPracticeForm.submeter();
 });
 
-Then('um popup deve ser aberto com os dados enviados', async ({ paginaPracticeForm, contexto }) => {
-  const aluno = contexto.obter('aluno');
+Then('um popup deve ser aberto com os dados enviados', async ({ paginaPracticeForm, contextoPracticeForm }) => {
+  const aluno = contextoPracticeForm.obter('aluno');
   await expect(paginaPracticeForm.popupResultado).toBeVisible();
   await expect(paginaPracticeForm.tituloPopupResultado).toHaveText('Thanks for submitting the form');
 
   const dia = String(aluno.dataNascimento.getDate()).padStart(2, '0');
   const mes = aluno.dataNascimento.toLocaleString('en-US', { month: 'long' });
 
-  expect(await paginaPracticeForm.obterValoresEnviados()).toEqual({
+  const esperado: Record<string, string> = {
     'Student Name': `${aluno.nome} ${aluno.sobrenome}`,
     'Student Email': aluno.email,
     Gender: aluno.genero,
@@ -32,7 +32,9 @@ Then('um popup deve ser aberto com os dados enviados', async ({ paginaPracticeFo
     Picture: path.basename(aluno.caminhoArquivo),
     Address: aluno.endereco,
     'State and City': `${aluno.estado} ${aluno.cidade}`,
-  });
+  };
+  await expect(paginaPracticeForm.rotulosResultado).toHaveText(Object.keys(esperado));
+  await expect(paginaPracticeForm.valoresResultado).toHaveText(Object.values(esperado));
 });
 
 When('eu fecho o popup', async ({ paginaPracticeForm }) => {

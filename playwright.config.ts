@@ -10,6 +10,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
+  // No CI, um teste que só passa na segunda tentativa é instável: o retry mostra
+  // isso no relatório, mas a execução falha para a instabilidade não passar despercebida.
+  failOnFlakyTests: !!process.env.CI,
   outputDir: 'relatorios/resultados',
   reporter: [
     ['list'],

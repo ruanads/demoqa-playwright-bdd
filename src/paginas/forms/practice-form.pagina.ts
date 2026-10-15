@@ -4,6 +4,10 @@ import { DadosAluno } from '@data/factories/aluno.factory';
 export class PaginaPracticeForm {
   readonly popupResultado: Locator;
   readonly tituloPopupResultado: Locator;
+  /** Coluna "Label" da tabela exibida no popup após o submit. */
+  readonly rotulosResultado: Locator;
+  /** Coluna "Values" da tabela exibida no popup após o submit. */
+  readonly valoresResultado: Locator;
   private readonly campoNome: Locator;
   private readonly campoSobrenome: Locator;
   private readonly campoEmail: Locator;
@@ -41,6 +45,8 @@ export class PaginaPracticeForm {
     this.botaoSubmit = page.locator('#submit');
     this.popupResultado = page.locator('.modal-content');
     this.tituloPopupResultado = page.locator('#example-modal-sizes-title-lg');
+    this.rotulosResultado = this.popupResultado.locator('tbody tr td:nth-child(1)');
+    this.valoresResultado = this.popupResultado.locator('tbody tr td:nth-child(2)');
     this.botaoFecharPopup = page.locator('#closeLargeModal');
   }
 
@@ -75,17 +81,6 @@ export class PaginaPracticeForm {
   /** O botão "Close" do demoqa não fecha o popup (bug conhecido), então usamos o ESC. */
   async fecharPopupComEsc(): Promise<void> {
     await this.page.keyboard.press('Escape');
-  }
-
-  /** Retorna a tabela "Label -> Values" exibida no popup após o submit. */
-  async obterValoresEnviados(): Promise<Record<string, string>> {
-    const linhas = await this.popupResultado.locator('tbody tr').all();
-    const valores: Record<string, string> = {};
-    for (const linha of linhas) {
-      const [rotulo, valor] = await linha.locator('td').allInnerTexts();
-      valores[rotulo.trim()] = valor.trim();
-    }
-    return valores;
   }
 
   /** Seleciona a data pelo calendário (mês, ano e dia), como um usuário faria. */

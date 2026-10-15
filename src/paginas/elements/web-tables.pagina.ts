@@ -52,8 +52,14 @@ export class PaginaWebTables {
     await this.campoPesquisa.clear();
   }
 
+  /**
+   * Digita o termo e aguarda a tabela terminar de filtrar: enquanto houver alguma
+   * linha sem o termo, o filtro ainda não foi aplicado. Sem essa espera, uma leitura
+   * logo após a pesquisa (como o `count()` de `estaExibido`) poderia ver a tabela antiga.
+   */
   private async pesquisar(termo: string): Promise<void> {
     await this.campoPesquisa.fill(termo);
+    await this.linhas.filter({ hasNotText: termo }).first().waitFor({ state: 'detached' });
   }
 
   private linhaPorEmail(email: string): Locator {
