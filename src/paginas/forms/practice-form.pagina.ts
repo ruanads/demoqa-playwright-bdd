@@ -1,37 +1,62 @@
-import { Locator } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 import { DadosAluno } from '@data/factories/aluno.factory';
-import { PaginaBase } from '@paginas/base.pagina';
 
-export class PaginaPracticeForm extends PaginaBase {
-  private readonly campoNome = this.page.locator('#firstName');
-  private readonly campoSobrenome = this.page.locator('#lastName');
-  private readonly campoEmail = this.page.locator('#userEmail');
-  private readonly campoCelular = this.page.locator('#userNumber');
-  private readonly campoDataNascimento = this.page.locator('#dateOfBirthInput');
-  private readonly campoMaterias = this.page.locator('#subjectsInput');
-  private readonly campoUpload = this.page.locator('#uploadPicture');
-  private readonly campoEndereco = this.page.locator('#currentAddress');
-  private readonly campoEstado = this.page.locator('#react-select-3-input');
-  private readonly campoCidade = this.page.locator('#react-select-4-input');
-  private readonly botaoSubmit = this.page.locator('#submit');
+export class PaginaPracticeForm {
+  readonly popupResultado: Locator;
+  readonly tituloPopupResultado: Locator;
+  private readonly campoNome: Locator;
+  private readonly campoSobrenome: Locator;
+  private readonly campoEmail: Locator;
+  private readonly opcoesGenero: Locator;
+  private readonly campoCelular: Locator;
+  private readonly campoDataNascimento: Locator;
+  private readonly calendario: Locator;
+  private readonly campoMaterias: Locator;
+  private readonly sugestoesMaterias: Locator;
+  private readonly opcoesHobbies: Locator;
+  private readonly campoUpload: Locator;
+  private readonly campoEndereco: Locator;
+  private readonly campoEstado: Locator;
+  private readonly campoCidade: Locator;
+  private readonly botaoSubmit: Locator;
+  private readonly botaoFecharPopup: Locator;
 
-  readonly popupResultado: Locator = this.page.locator('.modal-content');
-  readonly tituloPopupResultado: Locator = this.page.locator('#example-modal-sizes-title-lg');
-  private readonly botaoFecharPopup = this.page.locator('#closeLargeModal');
+  constructor(private readonly page: Page) {
+    this.campoNome = page.locator('#firstName');
+    this.campoSobrenome = page.locator('#lastName');
+    this.campoEmail = page.locator('#userEmail');
+    this.opcoesGenero = page.locator('#genterWrapper');
+    this.campoCelular = page.locator('#userNumber');
+    this.campoDataNascimento = page.locator('#dateOfBirthInput');
+    this.calendario = page.locator('.react-datepicker');
+    this.campoMaterias = page.locator('#subjectsInput');
+    this.sugestoesMaterias = page.locator('.subjects-auto-complete__option');
+    this.opcoesHobbies = page.locator('#hobbiesWrapper');
+    this.campoUpload = page.locator('#uploadPicture');
+    this.campoEndereco = page.locator('#currentAddress');
+    // Localizados pelo container: os ids internos do react-select (react-select-3-input...)
+    // dependem da ordem de criação dos componentes e mudam se outro select for adicionado.
+    this.campoEstado = page.locator('#state input');
+    this.campoCidade = page.locator('#city input');
+    this.botaoSubmit = page.locator('#submit');
+    this.popupResultado = page.locator('.modal-content');
+    this.tituloPopupResultado = page.locator('#example-modal-sizes-title-lg');
+    this.botaoFecharPopup = page.locator('#closeLargeModal');
+  }
 
   async preencher(aluno: DadosAluno): Promise<void> {
     await this.campoNome.fill(aluno.nome);
     await this.campoSobrenome.fill(aluno.sobrenome);
     await this.campoEmail.fill(aluno.email);
-    await this.page.locator('#genterWrapper').getByText(aluno.genero, { exact: true }).click();
+    await this.opcoesGenero.getByText(aluno.genero, { exact: true }).click();
     await this.campoCelular.fill(aluno.celular);
     await this.preencherDataNascimento(aluno.dataNascimento);
     for (const materia of aluno.materias) {
       await this.campoMaterias.fill(materia);
-      await this.page.locator('.subjects-auto-complete__option').getByText(materia, { exact: true }).click();
+      await this.sugestoesMaterias.getByText(materia, { exact: true }).click();
     }
     for (const hobby of aluno.hobbies) {
-      await this.page.locator('#hobbiesWrapper').getByText(hobby, { exact: true }).click();
+      await this.opcoesHobbies.getByText(hobby, { exact: true }).click();
     }
     await this.campoUpload.setInputFiles(aluno.caminhoArquivo);
     await this.campoEndereco.fill(aluno.endereco);
@@ -66,11 +91,10 @@ export class PaginaPracticeForm extends PaginaBase {
   /** Seleciona a data pelo calendário (mês, ano e dia), como um usuário faria. */
   private async preencherDataNascimento(data: Date): Promise<void> {
     await this.campoDataNascimento.click();
-    const calendario = this.page.locator('.react-datepicker');
-    await calendario.locator('.react-datepicker__month-select').selectOption(String(data.getMonth()));
-    await calendario.locator('.react-datepicker__year-select').selectOption(String(data.getFullYear()));
+    await this.calendario.locator('.react-datepicker__month-select').selectOption(String(data.getMonth()));
+    await this.calendario.locator('.react-datepicker__year-select').selectOption(String(data.getFullYear()));
     const dia = String(data.getDate()).padStart(3, '0');
-    await calendario
+    await this.calendario
       .locator(`.react-datepicker__day--${dia}:not(.react-datepicker__day--outside-month)`)
       .click();
   }

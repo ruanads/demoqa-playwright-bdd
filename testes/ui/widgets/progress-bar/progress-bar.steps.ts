@@ -1,21 +1,29 @@
 import { expect } from '@playwright/test';
-import { Then, When } from '@fixtures';
+import { Before, Then, When } from '@fixtures';
+
+// O relógio falso precisa ser instalado antes de a página carregar.
+Before({ tags: '@progressbar' }, async ({ page }) => {
+  await page.clock.install();
+});
 
 When('eu inicio a progress bar e paro antes dos {int}%', async ({ paginaProgressBar, contexto }, limite: number) => {
-  contexto.valorProgresso = await paginaProgressBar.iniciarEPararAntesDe(limite);
+  await paginaProgressBar.congelarTempo();
+  await paginaProgressBar.iniciar();
+  await paginaProgressBar.avancarAte(limite - 1);
+  await paginaProgressBar.parar();
+  contexto.definir('valorProgresso', await paginaProgressBar.valor());
 });
 
 Then('o valor da progress bar deve ser menor ou igual a {int}%', async ({ paginaProgressBar, contexto }, limite: number) => {
-  expect(contexto.valorProgresso).toBeGreaterThan(0);
-  expect(contexto.valorProgresso).toBeLessThanOrEqual(limite);
-  // Garante que a barra realmente parou e não continuou avançando.
-  expect(await paginaProgressBar.valor()).toBe(contexto.valorProgresso);
-  await expect(paginaProgressBar.barraProgresso).toHaveText(`${contexto.valorProgresso}%`);
+  const valor = contexto.obter('valorProgresso');
+  expect(valor).toBeGreaterThan(0);
+  expect(valor).toBeLessThanOrEqual(limite);
+  await expect(paginaProgressBar.barraProgresso).toHaveText(`${valor}%`);
 });
 
 When('eu inicio a progress bar novamente até chegar aos 100%', async ({ paginaProgressBar }) => {
   await paginaProgressBar.iniciar();
-  await paginaProgressBar.aguardarConclusao();
+  await paginaProgressBar.avancarAte(100);
   await expect(paginaProgressBar.barraProgresso).toHaveText('100%');
 });
 

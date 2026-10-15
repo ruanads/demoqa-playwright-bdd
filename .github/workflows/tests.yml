@@ -5,6 +5,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Princípio do menor privilégio: o workflow só precisa ler o código.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest

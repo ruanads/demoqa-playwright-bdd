@@ -35,7 +35,6 @@ src/                                          # Framework de automação
     clientes/book-store.cliente.ts            # Cliente HTTP da Book Store
     modelos/book-store.modelos.ts             # Tipos de request/response
   paginas/                                    # Page Objects, organizados como os testes
-    base.pagina.ts
     inicial.pagina.ts
     components/menu-lateral.component.ts
     elements/ forms/ widgets/ ...
@@ -111,8 +110,11 @@ Os bugs abaixo estão documentados como cenários `@bug @fail`. A tag especial `
 
 - **Feature e steps lado a lado**, agrupados por assunto, como recomenda a documentação do playwright-bdd. Steps compartilhados ficam em `testes/ui/shared`.
 - **Ambiente configurável**: `BASE_URL=https://outro-ambiente npm test`.
-- **Page Object Model**, com Page Objects entregues aos steps pelas fixtures do Playwright, sem instanciação manual.
-- **Contexto por cenário** (fixture `contexto`) para compartilhar estado entre steps sem variáveis globais, o que mantém a execução em paralelo segura.
+- **Page Object Model** no formato da documentação do Playwright (o construtor recebe o `page` e cria os locators), entregues aos steps pelas fixtures. Page Objects só executam ações e esperas de sincronização; **todas as validações (`expect`) ficam nos steps**.
+- **Contexto por cenário** (fixture `contexto`): os steps compartilham estado com `contexto.definir()` / `contexto.obter()`, de forma tipada e sem variáveis globais (seguro para execução em paralelo). Se um step tentar ler algo que ainda não foi definido, o erro diz exatamente o quê.
+- **Progress Bar determinística**: o cenário usa o relógio falso do Playwright (`page.clock`). O tempo só avança quando o teste manda, então o resultado não depende da velocidade da máquina.
+- **Dados reproduzíveis**: cada teste registra a semente do faker no relatório (anotação `faker-seed`). Para repetir uma falha com os mesmos dados: `FAKER_SEED=<semente> npm test`.
 - **Bloqueio de anúncios**: requisições para fora do domínio do site são abortadas, porque os anúncios deixam o site lento e cobrem elementos.
 - **Web Tables**: as linhas são localizadas pelo e-mail usando a busca da tabela, para não depender da paginação.
 - **Datepicker**: a data é selecionada pelo calendário (mês/ano/dia) em vez de digitada.
+- **Selects de Estado/Cidade** localizados pelo container (`#state input`), e não pelos ids gerados pelo react-select, que mudam conforme a ordem dos componentes.

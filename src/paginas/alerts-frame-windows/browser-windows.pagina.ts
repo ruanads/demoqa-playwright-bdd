@@ -1,17 +1,17 @@
-import { Page } from '@playwright/test';
-import { PaginaBase } from '@paginas/base.pagina';
+import { Locator, Page } from '@playwright/test';
+import { PaginaSample } from './sample.pagina';
 
-export class PaginaBrowserWindows extends PaginaBase {
-  private readonly botaoNovaJanela = this.page.locator('#windowButton');
+export class PaginaBrowserWindows {
+  private readonly botaoNovaJanela: Locator;
 
-  /** Clica em "New Window" e retorna a nova janela aberta. */
-  async abrirNovaJanela(): Promise<Page> {
-    const [novaJanela] = await Promise.all([this.page.waitForEvent('popup'), this.botaoNovaJanela.click()]);
-    await novaJanela.waitForLoadState();
-    return novaJanela;
+  constructor(private readonly page: Page) {
+    this.botaoNovaJanela = page.locator('#windowButton');
   }
 
-  static tituloPaginaExemplo(janela: Page) {
-    return janela.locator('#sampleHeading');
+  /** Clica em "New Window" e retorna a página aberta na nova janela. */
+  async abrirNovaJanela(): Promise<PaginaSample> {
+    const [novaJanela] = await Promise.all([this.page.waitForEvent('popup'), this.botaoNovaJanela.click()]);
+    await novaJanela.waitForLoadState();
+    return new PaginaSample(novaJanela);
   }
 }

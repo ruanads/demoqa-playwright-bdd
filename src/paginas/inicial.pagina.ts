@@ -1,6 +1,8 @@
-import { PaginaBase } from '@paginas/base.pagina';
+import { Page } from '@playwright/test';
 
-export class PaginaInicial extends PaginaBase {
+export class PaginaInicial {
+  constructor(private readonly page: Page) {}
+
   async abrir(): Promise<void> {
     await this.page.goto('/');
   }

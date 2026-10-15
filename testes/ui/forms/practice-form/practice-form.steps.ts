@@ -4,8 +4,9 @@ import { Then, When } from '@fixtures';
 import { gerarAluno } from '@data/factories/aluno.factory';
 
 When('eu preencho todo o formulário com valores aleatórios', async ({ paginaPracticeForm, contexto }) => {
-  contexto.aluno = gerarAluno();
-  await paginaPracticeForm.preencher(contexto.aluno);
+  const aluno = gerarAluno();
+  await paginaPracticeForm.preencher(aluno);
+  contexto.definir('aluno', aluno);
 });
 
 When('eu submeto o formulário', async ({ paginaPracticeForm }) => {
@@ -13,7 +14,7 @@ When('eu submeto o formulário', async ({ paginaPracticeForm }) => {
 });
 
 Then('um popup deve ser aberto com os dados enviados', async ({ paginaPracticeForm, contexto }) => {
-  const aluno = contexto.aluno!;
+  const aluno = contexto.obter('aluno');
   await expect(paginaPracticeForm.popupResultado).toBeVisible();
   await expect(paginaPracticeForm.tituloPopupResultado).toHaveText('Thanks for submitting the form');
 

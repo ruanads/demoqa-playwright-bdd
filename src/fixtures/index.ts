@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker';
 import { createBdd, test as base } from 'playwright-bdd';
 import { ClienteBookStore } from '@api/clientes/book-store.cliente';
 import { ambiente } from '@config/ambiente';
@@ -11,6 +12,7 @@ import { PaginaProgressBar } from '@paginas/widgets/progress-bar.pagina';
 import { ContextoCenario } from './contexto-cenario';
 
 type Fixtures = {
+  sementeFaker: number;
   contexto: ContextoCenario;
   clienteBookStore: ClienteBookStore;
   paginaInicial: PaginaInicial;
@@ -25,16 +27,29 @@ type Fixtures = {
 const dominioDoSite = new URL(ambiente.urlBase).hostname;
 
 export const test = base.extend<Fixtures>({
+  // Fixa a semente do faker em cada teste e a registra no relatório. Para reproduzir
+  // uma falha com os mesmos dados: FAKER_SEED=<semente do relatório> npm test
+  sementeFaker: [
+    async ({}, use, testInfo) => {
+      const semente = Number(process.env.FAKER_SEED) || Math.floor(Math.random() * 1_000_000_000);
+      faker.seed(semente);
+      testInfo.annotations.push({ type: 'faker-seed', description: String(semente) });
+      await use(semente);
+    },
+    { auto: true },
+  ],
   // O demoqa carrega muitos anúncios de terceiros que deixam a página lenta e cobrem
   // elementos. Bloqueamos tudo que não for do próprio domínio (vale também para popups).
   context: async ({ context }, use) => {
     await context.route('**/*', (rota) => {
       const { hostname } = new URL(rota.request().url());
-      return hostname.endsWith(dominioDoSite) ? rota.continue() : rota.abort();
+      // Aceita só o domínio exato ou subdomínios dele (evita liberar, por exemplo, "maliciosodemoqa.com").
+      const ehDoSite = hostname === dominioDoSite || hostname.endsWith(`.${dominioDoSite}`);
+      return ehDoSite ? rota.continue() : rota.abort();
     });
     await use(context);
   },
-  contexto: async ({}, use) => use({}),
+  contexto: async ({}, use) => use(new ContextoCenario()),
   clienteBookStore: async ({ request }, use) => use(new ClienteBookStore(request)),
   paginaInicial: async ({ page }, use) => use(new PaginaInicial(page)),
   menuLateral: async ({ page }, use) => use(new MenuLateral(page)),
@@ -47,4 +62,4 @@ export const test = base.extend<Fixtures>({
 
 // Given/When/Then são mantidos em inglês para que a extensão do Cucumber no VS Code
 // reconheça os steps. Nas features eles aparecem como Dado/Quando/Então.
-export const { Given, When, Then, After } = createBdd(test);
+export const { Given, When, Then, Before, After } = createBdd(test);

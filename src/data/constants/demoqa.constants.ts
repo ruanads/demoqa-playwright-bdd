@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 // Opções disponíveis no Practice Form do demoqa (os valores são os textos exibidos no site).
 export const GENEROS = ['Male', 'Female', 'Other'] as const;
 export const HOBBIES = ['Sports', 'Reading', 'Music'] as const;
@@ -9,4 +11,6 @@ export const ESTADOS_E_CIDADES: Record<string, string[]> = {
   Rajasthan: ['Jaipur', 'Jaiselmer'],
 };
 
-export const CAMINHO_ARQUIVO_UPLOAD = 'src/data/files/upload.txt';
+// Exigência do desafio: o .txt do upload precisa estar versionado no repositório.
+// O caminho é absoluto para funcionar independente da pasta de onde os testes são executados.
+export const CAMINHO_ARQUIVO_UPLOAD = path.resolve(__dirname, '../files/upload.txt');

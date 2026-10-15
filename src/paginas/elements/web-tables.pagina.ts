@@ -1,12 +1,18 @@
-import { expect, Locator } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 import { RegistroWebTable } from '@data/factories/registro-web-table.factory';
-import { PaginaBase } from '@paginas/base.pagina';
 
-export class PaginaWebTables extends PaginaBase {
-  private readonly botaoAdicionar = this.page.locator('#addNewRecordButton');
-  private readonly campoPesquisa = this.page.locator('#searchBox');
-  private readonly modal = this.page.locator('.modal-content');
-  private readonly linhas = this.page.locator('table tbody tr');
+export class PaginaWebTables {
+  private readonly botaoAdicionar: Locator;
+  private readonly campoPesquisa: Locator;
+  private readonly modal: Locator;
+  private readonly linhas: Locator;
+
+  constructor(private readonly page: Page) {
+    this.botaoAdicionar = page.locator('#addNewRecordButton');
+    this.campoPesquisa = page.locator('#searchBox');
+    this.modal = page.locator('.modal-content');
+    this.linhas = page.locator('table tbody tr');
+  }
 
   async criar(registro: RegistroWebTable): Promise<void> {
     await this.botaoAdicionar.click();
@@ -14,21 +20,25 @@ export class PaginaWebTables extends PaginaBase {
   }
 
   async editar(emailAtual: string, atualizado: RegistroWebTable): Promise<void> {
+    await this.pesquisar(emailAtual);
     await this.linhaPorEmail(emailAtual).locator('[title="Edit"]').click();
     await this.preencherFormulario(atualizado);
+    await this.limparPesquisa();
   }
 
   async deletar(email: string): Promise<void> {
+    await this.pesquisar(email);
     await this.linhaPorEmail(email).locator('[title="Delete"]').click();
     await this.limparPesquisa();
   }
 
   /**
-   * Filtra a tabela pelo e-mail antes de buscar a linha, evitando
-   * problemas com a paginação quando existem muitos registros.
+   * Filtra a tabela pelo e-mail e retorna as células da linha encontrada.
+   * A pesquisa evita problemas com a paginação quando existem muitos registros.
    */
-  linhaPorEmail(email: string): Locator {
-    return this.linhas.filter({ has: this.page.getByRole('cell', { name: email, exact: true }) });
+  async pesquisarCelulas(email: string): Promise<Locator> {
+    await this.pesquisar(email);
+    return this.linhaPorEmail(email).locator('td');
   }
 
   async estaExibido(email: string): Promise<boolean> {
@@ -38,38 +48,20 @@ export class PaginaWebTables extends PaginaBase {
     return exibido;
   }
 
-  async pesquisar(termo: string): Promise<void> {
-    await this.campoPesquisa.fill(termo);
-  }
-
   async limparPesquisa(): Promise<void> {
     await this.campoPesquisa.clear();
   }
 
-  async validarRegistroExibido(registro: RegistroWebTable): Promise<void> {
-    await this.pesquisar(registro.email);
-    const celulas = this.linhaPorEmail(registro.email).locator('td');
-    await expect(celulas.first()).toBeVisible();
-    await expect(celulas).toHaveText([
-      registro.nome,
-      registro.sobrenome,
-      registro.idade,
-      registro.email,
-      registro.salario,
-      registro.departamento,
-      '',
-    ]);
-    await this.limparPesquisa();
+  private async pesquisar(termo: string): Promise<void> {
+    await this.campoPesquisa.fill(termo);
   }
 
-  async validarRegistroNaoExibido(email: string): Promise<void> {
-    await this.pesquisar(email);
-    await expect(this.linhaPorEmail(email)).toHaveCount(0);
-    await this.limparPesquisa();
+  private linhaPorEmail(email: string): Locator {
+    return this.linhas.filter({ has: this.page.getByRole('cell', { name: email, exact: true }) });
   }
 
   private async preencherFormulario(registro: RegistroWebTable): Promise<void> {
-    await expect(this.modal).toBeVisible();
+    await this.modal.waitFor();
     await this.modal.locator('#firstName').fill(registro.nome);
     await this.modal.locator('#lastName').fill(registro.sobrenome);
     await this.modal.locator('#userEmail').fill(registro.email);
@@ -77,6 +69,6 @@ export class PaginaWebTables extends PaginaBase {
     await this.modal.locator('#salary').fill(registro.salario);
     await this.modal.locator('#department').fill(registro.departamento);
     await this.modal.locator('#submit').click();
-    await expect(this.modal).toBeHidden();
+    await this.modal.waitFor({ state: 'hidden' });
   }
 }

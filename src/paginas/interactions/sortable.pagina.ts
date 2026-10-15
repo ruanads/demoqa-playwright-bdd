@@ -1,10 +1,13 @@
-import { expect } from '@playwright/test';
-import { PaginaBase } from '@paginas/base.pagina';
+import { Locator, Page } from '@playwright/test';
 
 const PALAVRA_PARA_NUMERO: Record<string, number> = { One: 1, Two: 2, Three: 3, Four: 4, Five: 5, Six: 6 };
 
-export class PaginaSortable extends PaginaBase {
-  private readonly itens = this.page.locator('#demo-tabpane-list .list-group-item');
+export class PaginaSortable {
+  private readonly itens: Locator;
+
+  constructor(page: Page) {
+    this.itens = page.locator('#demo-tabpane-list .list-group-item');
+  }
 
   async textosDosItens(): Promise<string[]> {
     return this.itens.allInnerTexts();
@@ -24,9 +27,13 @@ export class PaginaSortable extends PaginaBase {
       const atual = await this.textosDosItens();
       if (atual[posicao] === ordem[posicao]) continue;
 
-      const origem = this.itens.filter({ hasText: new RegExp(`^${ordem[posicao]}$`) });
-      await origem.dragTo(this.itens.nth(posicao), { targetPosition: { x: 20, y: 5 } });
-      await expect(this.itens.nth(posicao)).toHaveText(ordem[posicao]);
+      await this.item(ordem[posicao]).dragTo(this.itens.nth(posicao), { targetPosition: { x: 20, y: 5 } });
+      // Aguarda o React reposicionar o item antes de seguir para a próxima posição.
+      await this.itens.nth(posicao).filter({ hasText: ordem[posicao] }).waitFor();
     }
+  }
+
+  private item(texto: string): Locator {
+    return this.itens.getByText(texto, { exact: true });
   }
 }
