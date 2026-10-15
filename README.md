@@ -15,18 +15,49 @@ Automação do desafio de QA (API + Frontend) do site [demoqa.com](https://demoq
 
 ## Estrutura
 
+O projeto separa **o que é testado** (`testes/`) de **como é testado** (`src/`):
+
 ```
-features/
-  api/bookStore.feature          # Parte 1 — API
-  ui/*.feature                   # Parte 2 — Frontend
-src/
-  api/                           # Client da API (BookStoreApi) e modelos tipados
-  pages/                         # Page Objects (+ components/SideMenu)
-  steps/api, steps/ui            # Step definitions
-  fixtures/fixtures.ts           # Fixtures: Page Objects, client da API e contexto do cenário
-  utils/dataFactory.ts           # Geração de dados com faker
-test-data/files/upload.txt       # Arquivo usado no upload do Practice Form
+testes/                                       # Cenários: cada feature fica junto dos seus steps
+  api/
+    book-store/                               # Parte 1 — API
+      book-store.feature
+      book-store.steps.ts
+  ui/                                         # Parte 2 — Frontend (pastas seguem o menu do DemoQA)
+    shared/navegacao.steps.ts                 # Steps reutilizados (página inicial → card → submenu)
+    elements/web-tables/
+    forms/practice-form/
+    alerts-frame-windows/browser-windows/
+    widgets/progress-bar/
+    interactions/sortable/
+src/                                          # Framework de automação
+  api/
+    clientes/book-store.cliente.ts            # Cliente HTTP da Book Store
+    modelos/book-store.modelos.ts             # Tipos de request/response
+  paginas/                                    # Page Objects, organizados como os testes
+    base.pagina.ts
+    inicial.pagina.ts
+    components/menu-lateral.component.ts
+    elements/ forms/ widgets/ ...
+  fixtures/
+    index.ts                                  # Entrega Page Objects, cliente da API e contexto aos steps
+    contexto-cenario.ts                       # Estado compartilhado entre os steps de um cenário
+  data/
+    factories/                                # Geração de massa com faker (usuário, aluno, registro)
+    constants/                                # Opções fixas do DemoQA (estados, matérias...)
+    files/upload.txt                          # Arquivo usado no upload do Practice Form
+  config/ambiente.ts                          # URL do ambiente (BASE_URL)
 ```
+
+Os imports usam **atalhos** (`@paginas/*`, `@api/*`, `@data/*`, `@config/*`, `@fixtures`) definidos no `tsconfig.json`, sem caminhos relativos como `../../../`.
+
+### Convenção de nomes
+
+O projeto é escrito em português, com três exceções:
+
+1. **Nomes das telas e seções do DemoQA** ficam como aparecem no site e no enunciado (Practice Form, Web Tables, Book Store, Elements, Forms...), inclusive nas pastas de categoria, para facilitar encontrar a tela correspondente.
+2. **Termos técnicos sem tradução natural ou exigidos pelas ferramentas**: `src`, `fixtures`, `data`, `factories`, `constants`, `components`, `shared`, `.feature`, `.steps.ts`, `Given/When/Then` no código (a extensão do Cucumber no VS Code depende desses nomes; nas features eles aparecem como `Dado/Quando/Então`).
+3. **Contratos externos**: API do Playwright e campos JSON da API (`userName`, `isbn`...).
 
 ## Como executar
 
@@ -45,9 +76,10 @@ npm run report        # abre o relatório HTML do Playwright
 
 Filtrar por tag: `npx bddgen && npx playwright test --grep @webtables`.
 
-Relatórios gerados:
-- `playwright-report/` — relatório do Playwright (com trace, screenshot e vídeo das falhas)
-- `cucumber-report/index.html` — relatório no formato Cucumber
+Tudo que a execução gera fica em `relatorios/`:
+- `relatorios/playwright/` — relatório HTML do Playwright
+- `relatorios/cucumber/index.html` — relatório no formato Cucumber
+- `relatorios/resultados/` — traces, screenshots e vídeos das falhas
 
 ## Cobertura
 
@@ -77,8 +109,10 @@ Os bugs abaixo estão documentados como cenários `@bug @fail`. A tag especial `
 
 ## Decisões técnicas
 
-- **Page Object Model**, com Page Objects injetados via fixtures do Playwright, sem instanciação manual nos steps.
-- **Contexto por cenário** (`ctx` fixture) para compartilhar estado entre steps sem variáveis globais, o que mantém a execução em paralelo segura.
-- **Bloqueio de anúncios**: requisições para fora de `demoqa.com` são abortadas, porque os anúncios deixam o site lento e cobrem elementos.
+- **Feature e steps lado a lado**, agrupados por assunto, como recomenda a documentação do playwright-bdd. Steps compartilhados ficam em `testes/ui/shared`.
+- **Ambiente configurável**: `BASE_URL=https://outro-ambiente npm test`.
+- **Page Object Model**, com Page Objects entregues aos steps pelas fixtures do Playwright, sem instanciação manual.
+- **Contexto por cenário** (fixture `contexto`) para compartilhar estado entre steps sem variáveis globais, o que mantém a execução em paralelo segura.
+- **Bloqueio de anúncios**: requisições para fora do domínio do site são abortadas, porque os anúncios deixam o site lento e cobrem elementos.
 - **Web Tables**: as linhas são localizadas pelo e-mail usando a busca da tabela, para não depender da paginação.
 - **Datepicker**: a data é selecionada pelo calendário (mês/ano/dia) em vez de digitada.

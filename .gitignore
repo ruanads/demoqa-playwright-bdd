@@ -1,7 +1,4 @@
 node_modules/
 .features-gen/
-test-results/
-playwright-report/
-cucumber-report/
-blob-report/
+relatorios/
 *.pptx

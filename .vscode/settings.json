@@ -1,4 +1,7 @@
 {
-  "cucumber.features": ["features/**/*.feature"],
-  "cucumber.glue": ["src/steps/**/*.ts", "src/fixtures/**/*.ts"]
+  "cucumber.features": ["testes/**/*.feature"],
+  "cucumber.glue": ["testes/**/*.steps.ts", "src/fixtures/**/*.ts"],
+  "files.exclude": {
+    ".features-gen": true
+  }
 }

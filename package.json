@@ -9,7 +9,7 @@
     "test:ui": "bddgen && playwright test --project=ui",
     "test:headed": "bddgen && playwright test --project=ui --headed",
     "typecheck": "tsc",
-    "report": "playwright show-report"
+    "report": "playwright show-report relatorios/playwright"
   },
   "type": "commonjs",
   "devDependencies": {

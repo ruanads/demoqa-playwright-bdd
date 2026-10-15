@@ -1,7 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 import { cucumberReporter, defineBddProject } from 'playwright-bdd';
+import { ambiente } from './src/config/ambiente';
 
-const sharedSteps = 'src/fixtures/**/*.ts';
+const fixtures = 'src/fixtures/index.ts';
 
 export default defineConfig({
   timeout: 60_000,
@@ -9,13 +10,14 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
+  outputDir: 'relatorios/resultados',
   reporter: [
     ['list'],
-    ['html', { open: 'never' }],
-    cucumberReporter('html', { outputFile: 'cucumber-report/index.html' }),
+    ['html', { outputFolder: 'relatorios/playwright', open: 'never' }],
+    cucumberReporter('html', { outputFile: 'relatorios/cucumber/index.html' }),
   ],
   use: {
-    baseURL: 'https://demoqa.com',
+    baseURL: ambiente.urlBase,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -24,15 +26,15 @@ export default defineConfig({
     {
       ...defineBddProject({
         name: 'api',
-        features: 'features/api/**/*.feature',
-        steps: ['src/steps/api/**/*.ts', sharedSteps],
+        features: 'testes/api/**/*.feature',
+        steps: ['testes/api/**/*.steps.ts', fixtures],
       }),
     },
     {
       ...defineBddProject({
         name: 'ui',
-        features: 'features/ui/**/*.feature',
-        steps: ['src/steps/ui/**/*.ts', sharedSteps],
+        features: 'testes/ui/**/*.feature',
+        steps: ['testes/ui/**/*.steps.ts', fixtures],
       }),
       use: { ...devices['Desktop Chrome'], viewport: { width: 1600, height: 900 } },
     },
