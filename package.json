@@ -1,0 +1,22 @@
+{
+  "name": "desafio-qa-automation",
+  "version": "1.0.0",
+  "description": "Desafio QA Automation (DemoQA) com Playwright + TypeScript + BDD",
+  "scripts": {
+    "test": "bddgen && playwright test",
+    "bddgen": "bddgen",
+    "test:api": "bddgen && playwright test --project=api",
+    "test:ui": "bddgen && playwright test --project=ui",
+    "test:headed": "bddgen && playwright test --project=ui --headed",
+    "typecheck": "tsc",
+    "report": "playwright show-report"
+  },
+  "type": "commonjs",
+  "devDependencies": {
+    "@faker-js/faker": "^10.6.0",
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.5",
+    "playwright-bdd": "^9.2.1",
+    "typescript": "^7.0.2"
+  }
+}
