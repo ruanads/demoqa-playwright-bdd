@@ -1,11 +1,11 @@
 import { expect } from '@playwright/test';
 import { faker } from '@faker-js/faker';
-import { Then, When } from '@fixtures';
+import { Given, Then, When } from '@fixtures';
 import { PaginaSortable } from '@paginas/interactions/sortable.pagina';
 
 // A lista já é exibida em ordem crescente, então primeiro ela é embaralhada
 // via drag and drop para que a ordenação tenha efeito real.
-When('eu embaralho os elementos da lista usando drag and drop', async ({ paginaSortable }) => {
+Given('eu embaralho os elementos da lista usando drag and drop', async ({ paginaSortable }) => {
   const atual = await paginaSortable.textosDosItens();
   const crescente = PaginaSortable.ordemCrescente(atual);
   let embaralhada: string[];

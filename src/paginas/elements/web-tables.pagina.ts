@@ -29,6 +29,8 @@ export class PaginaWebTables {
   async deletar(email: string): Promise<void> {
     await this.pesquisar(email);
     await this.linhaPorEmail(email).locator('[title="Delete"]').click();
+    // Só limpa a pesquisa depois que a linha sumir, para a próxima leitura não pegar estado intermediário.
+    await this.linhaPorEmail(email).waitFor({ state: 'detached' });
     await this.limparPesquisa();
   }
 

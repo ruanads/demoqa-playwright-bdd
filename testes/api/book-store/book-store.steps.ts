@@ -12,15 +12,16 @@ import { gerarCredenciais } from '@data/factories/usuario.factory';
 
 Given('que eu crio um novo usuário', async ({ clienteBookStore, contextoBookStore }) => {
   const credenciais = gerarCredenciais();
+  contextoBookStore.definir('credenciais', credenciais);
   const resposta = await clienteBookStore.criarUsuario(credenciais);
-  expect(resposta.status()).toBe(201);
-
   const corpo: RespostaCriarUsuario = await resposta.json();
+  // Registra o id antes das validações: se alguma falhar, a limpeza ainda remove o usuário.
+  if (corpo.userID) contextoBookStore.definir('idUsuario', corpo.userID);
+
+  expect(resposta.status()).toBe(201);
   expect(corpo.username).toBe(credenciais.userName);
   expect(corpo.userID).toBeTruthy();
   expect(corpo.books).toEqual([]);
-  contextoBookStore.definir('credenciais', credenciais);
-  contextoBookStore.definir('idUsuario', corpo.userID);
 });
 
 When('eu gero um token de acesso para o usuário', async ({ clienteBookStore, contextoBookStore }) => {
@@ -53,7 +54,12 @@ When('eu listo os livros disponíveis', async ({ clienteBookStore, contextoBookS
 });
 
 When('eu alugo {int} livros de livre escolha', async ({ clienteBookStore, contextoBookStore }, quantidade: number) => {
-  const livros = faker.helpers.arrayElements(contextoBookStore.obter('livrosDisponiveis'), quantidade);
+  const livrosDisponiveis = contextoBookStore.obter('livrosDisponiveis');
+  // arrayElements devolve menos itens se não houver livros suficientes; sem essas
+  // guardas o cenário poderia passar alugando menos livros do que o pedido.
+  expect(livrosDisponiveis.length).toBeGreaterThanOrEqual(quantidade);
+  const livros = faker.helpers.arrayElements(livrosDisponiveis, quantidade);
+  expect(livros).toHaveLength(quantidade);
   const isbns = livros.map((livro) => livro.isbn);
 
   const resposta = await clienteBookStore.adicionarLivros(contextoBookStore.obter('idUsuario'), isbns, contextoBookStore.obter('token'));
@@ -88,9 +94,10 @@ After({ tags: '@api' }, async ({ clienteBookStore, contextoBookStore }) => {
   let token = contextoBookStore.possui('token') ? contextoBookStore.obter('token') : undefined;
   if (!token) {
     const respostaToken = await clienteBookStore.gerarToken(contextoBookStore.obter('credenciais'));
+    expect(respostaToken.status(), `limpeza: falha ao gerar token para remover o usuário ${idUsuario}`).toBe(200);
     token = ((await respostaToken.json()) as RespostaToken).token ?? undefined;
   }
-  expect(token, 'não foi possível gerar token para remover o usuário de teste').toBeTruthy();
+  expect(token, `limpeza: token vazio, o usuário ${idUsuario} não pôde ser removido`).toBeTruthy();
 
   const resposta = await clienteBookStore.deletarUsuario(idUsuario, token!);
   expect(resposta.status(), `usuário de teste ${idUsuario} não foi removido`).toBe(204);

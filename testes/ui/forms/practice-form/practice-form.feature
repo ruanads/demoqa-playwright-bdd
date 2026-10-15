@@ -4,7 +4,7 @@ Funcionalidade: Practice Form
 
   Contexto:
     Dado que eu acesso o site do DemoQA
-    Quando eu escolho a opção "Forms" na página inicial
+    E eu escolho a opção "Forms" na página inicial
     E eu clico no submenu "Practice Form"
 
   Cenário: Preencher e submeter o formulário com valores aleatórios
